@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  AGENT
+  PLAYER
+}
+
+enum OwnerType {
+  AGENT
+  PLAYER
+}
+
+enum MessageStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+}
+
+model Message {
+  id        Int           @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String
+  subject   String
+  content   String        @db.Text
+  status    MessageStatus @default(NEW)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("message")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  avatar    String?
+  role      Role
+  isActive  Boolean  @default(true)
+  
+  // Auth & Invitation Tokens
+  invitationToken       String?   @unique
+  invitationExpiresAt   DateTime?
+  resetPasswordToken    String?   @unique
+  resetPasswordExpiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  agent  Agent?
+  player Player?
+
+  @@map("user")
+}
+
+model Agent {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  players Player[]
+
+  @@map("agent")
+}
+
+model Player {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  agentId     Int
+  name        String
+  age         Int
+  nationality String
+  poste       String
+  club        String
+  email       String   @unique
+  image       String?
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent      Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  statistics Statistic[]
+
+  @@map("player")
+}
+
+model Statistic {
+  id            Int      @id @default(autoincrement())
+  playerId      Int
+  season        String
+  matchesPlayed Int      @default(0)
+  minutesPlayed Int      @default(0)
+  rating        Float    @default(0)
+  goals         Int      @default(0)
+  assists       Int      @default(0)
+  
+  // Shots
+  shotsTotal    Int      @default(0)
+  shotsOnTarget Int      @default(0)
+
+  // Passes
+  passesTotal    Int      @default(0)
+  passesKey      Int      @default(0)
+  passesAccuracy Float    @default(0) // Percentage
+
+  // Tackles
+  tacklesTotal  Int      @default(0)
+  blocks        Int      @default(0)
+  interceptions Int      @default(0)
+
+  // Duels
+  duelsTotal    Int      @default(0)
+  duelsWon      Int      @default(0)
+
+  // Dribbles
+  dribblesAttempts Int      @default(0)
+  dribblesSuccess  Int      @default(0)
+
+  // Fouls
+  foulsCommitted Int      @default(0)
+  foulsDrawn     Int      @default(0)
+
+  height        Float    @default(0)
+  weight        Float    @default(0)
+  yellowCards   Int      @default(0)
+  redCards      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@map("statistic")
+}
+
+model Agenda {
+  id        Int       @id @default(autoincrement())
+  ownerType OwnerType
+  ownerId   Int
+  color     String    @default("#3788d8")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  events Event[]
+
+  @@unique([ownerType, ownerId])
+  @@map("agenda")
+}
+
+model Event {
+  id              Int       @id @default(autoincrement())
+  agendaId        Int
+  title           String
+  description     String?   @db.Text
+  dateHeureDebut  DateTime
+  dateHeureFin    DateTime
+  ownerType       OwnerType
+  ownerId         Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  agenda Agenda @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+
+  @@map("event")
+}
