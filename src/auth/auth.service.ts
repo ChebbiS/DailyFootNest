@@ -133,9 +133,11 @@ export class AuthService {
 
         // Auto login
         const payload = { sub: user.id, email: user.email, role: user.role };
+        const userProfile = await this.validateUser(user.id);
+
         return {
             access_token: this.jwtService.sign(payload),
-            user: { id: user.id, email: user.email, name: user.name, role: user.role }
+            user: userProfile
         };
     }
 
@@ -217,15 +219,11 @@ export class AuthService {
             // Generate JWT token
             const payload = { sub: user.id, email: user.email, role: user.role };
             const access_token = this.jwtService.sign(payload);
+            const userProfile = await this.validateUser(user.id);
 
             return {
                 access_token,
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                },
+                user: userProfile,
             };
         } catch (error) {
             console.error("Registration Error Details:", error);
@@ -286,15 +284,11 @@ export class AuthService {
         // Generate JWT token
         const payload = { sub: result.id, email: result.email, role: result.role };
         const access_token = this.jwtService.sign(payload);
+        const userProfile = await this.validateUser(result.id);
 
         return {
             access_token,
-            user: {
-                id: result.id,
-                email: result.email,
-                name: result.name,
-                role: result.role,
-            },
+            user: userProfile,
         };
     }
 
@@ -322,15 +316,11 @@ export class AuthService {
         // Generate JWT token
         const payload = { sub: user.id, email: user.email, role: user.role };
         const access_token = this.jwtService.sign(payload);
+        const userProfile = await this.validateUser(user.id);
 
         return {
             access_token,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-            },
+            user: userProfile,
         };
     }
 
