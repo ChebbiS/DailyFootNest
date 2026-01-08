@@ -86,6 +86,7 @@ export class UsersService {
                     role: true,
                     avatar: true,
                     isActive: true,
+                    invitationToken: true,
                     createdAt: true,
                 }
             }),
